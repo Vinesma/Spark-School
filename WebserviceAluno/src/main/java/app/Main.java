@@ -3,6 +3,7 @@ package app;
 import spark.*;
 
 import spark.Service.StaticFiles;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import app.manager.AlunoManager;
 
 import static spark.Spark.*;
@@ -15,6 +16,7 @@ import app.paginas.*;
 public class Main {
 	
 	private static AlunoManager alunoManager = new AlunoManager();
+	private static ObjectMapper om = new ObjectMapper();
 	private static Page newHtml = new Page();
 	
     public static void main(String[] args) {
@@ -25,8 +27,17 @@ public class Main {
     	
     	get("/", (req, res) -> newHtml.alunoPage(req)); //pagina inicial
     	
-    	get("/aluno", (req, res) -> { //retorna todos os alunos
-            List resultado = alunoManager.encontraTodos();
+    	get("/aluno/all", (req, res) -> { //retorna todos os alunos em JSON
+    		List resultado = alunoManager.encontraTodos();
+    		if(resultado.isEmpty()) {
+    			return "Nenhum aluno encontrado!" + newHtml.returnButton();
+    		}else{
+    			return om.writeValueAsString(alunoManager.encontraTodos());
+    		}
+        });
+    	
+    	get("/aluno", (req, res) -> { //retorna todos os alunos em HTML
+            List resultado = alunoManager.encontraTodosHTML();
             if (resultado.isEmpty()) {
                 return "Nenhum aluno encontrado!" + newHtml.returnButton();
             } else {
@@ -35,10 +46,20 @@ public class Main {
             		temp += resultado.get(i).toString() + "<br>";
 				}
                 return temp + newHtml.returnButton();
-            }
+            }            
         });
     	
-    	post("/aluno/add", (req, res) -> { //adiciona um aluno     	
+    	get("/aluno/:id", (req, res) -> { //encontra um aluno por ID
+    		Aluno aluno = alunoManager.encontraId(req.params(":id"));
+            if (aluno != null) {
+                return om.writeValueAsString(aluno);
+            } else {
+                res.status(404);
+                return "Aluno nao encontrado" + newHtml.returnButton();
+            }
+    	});
+    	
+    	post("/aluno/add", (req, res) -> { //adiciona um aluno
             String name = req.queryParams("nome");
             String cpf = req.queryParams("cpf");
             String email = req.queryParams("email");

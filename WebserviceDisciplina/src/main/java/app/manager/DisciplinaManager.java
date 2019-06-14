@@ -9,6 +9,7 @@ import spark.Route;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import app.aluno.Aluno;
 import app.disciplina.*;
 
 public class DisciplinaManager {
@@ -30,9 +31,13 @@ public class DisciplinaManager {
     
     public void deletar(String id) {
 		disciplinas.remove(id);	
-	}   
+	}
     
     public List encontraTodos() {
+    	return new ArrayList<>(disciplinas.values());
+    }
+    
+    public List encontraTodosHTML() {
     	ArrayList<String> values = new ArrayList<String>();
     	
     	if (!disciplinas.isEmpty()) {
@@ -48,6 +53,10 @@ public class DisciplinaManager {
 		}
 		return values;
     }
+    
+    public Disciplina encontraId(String id) {
+		return disciplinas.get(id);
+	}
     
     public DisciplinaManager() {
     }

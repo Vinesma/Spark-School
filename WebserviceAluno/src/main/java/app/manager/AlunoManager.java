@@ -32,6 +32,10 @@ public class AlunoManager {
 	}
     
     public List encontraTodos() {
+    	return new ArrayList<>(alunos.values());
+    }
+    
+    public List encontraTodosHTML() {
     	ArrayList<String> values = new ArrayList<String>();
     	
     	if (!alunos.isEmpty()) {
@@ -50,6 +54,10 @@ public class AlunoManager {
 		return values;
     }
     
+    public Aluno encontraId(String id) {
+		return alunos.get(id);
+	}
+
     public AlunoManager() {
     }	
 }
