@@ -1,8 +1,5 @@
 package app;
 
-import spark.*;
-
-import spark.Service.StaticFiles;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import app.manager.AlunoManager;
 
