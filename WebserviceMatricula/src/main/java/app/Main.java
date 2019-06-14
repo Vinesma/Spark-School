@@ -29,7 +29,7 @@ public class Main {
     	
     	exception(Exception.class, (e, req, res) -> e.printStackTrace());
     	staticFiles.location("/public");
-    	port(9997);
+    	port(9996);
     	
     	get("/", (req, res) -> newHtml.matriculaPage(req)); //pagina inicial
     	
@@ -52,17 +52,17 @@ public class Main {
             String cod = req.queryParams("cod");
             
             Aluno aluno = getAlunoNome(name);
-            
-    		/*
-            Matricula matricula = matriculaManager.adicionar(name, cpf, cod);
-            res.status(201); // 201 Created
-            return "matricula " + matricula.getNomeAluno() + " adicionada! Id = " + matricula.getId() + newHtml.returnButton();*/
+                		
             if(aluno != null) {
             	return aluno.getNome();
             }else{
             	return "Aluno nao encontrado";
             }	
-            
+            /*
+            Matricula matricula = matriculaManager.adicionar(name, cpf, cod);
+            res.status(201); // 201 Created
+            return "matricula " + matricula.getNomeAluno() + " adicionada! Id = " + matricula.getId() + newHtml.returnButton();
+            */
         });
     	
     	delete("/matricula/:id", (req, res) -> { //apaga uma matricula

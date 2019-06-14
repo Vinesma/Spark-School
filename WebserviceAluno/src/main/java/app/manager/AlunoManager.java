@@ -31,8 +31,8 @@ public class AlunoManager {
 		alunos.remove(id);	
 	}
     
-    public List encontraTodos() {
-    	return new ArrayList<>(alunos.values());
+    public Collection<Aluno> encontraTodos() {
+    	return alunos.values();
     }
     
     public List encontraTodosHTML() {
