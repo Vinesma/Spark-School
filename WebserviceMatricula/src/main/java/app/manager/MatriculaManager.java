@@ -12,35 +12,35 @@ import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public class MatriculaManager {
-	public static Map<String, Matricula> disciplinas = new HashMap<String, Matricula>();
+	public static Map<String, Matricula> matriculas = new HashMap<String, Matricula>();
     private static final AtomicInteger count = new AtomicInteger(0);
     private static Page newHtml = new Page();
     
     public Matricula buscaId(String id) {
-    	return (Matricula) disciplinas.get(id);
+    	return (Matricula) matriculas.get(id);
     }
     
-    public Matricula adicionar(String nome) {
+    public Matricula adicionar(String nome, String cpf, String cod) {
     	int idAtual = count.incrementAndGet();
     	
-    	Matricula disciplina = new Matricula(idAtual, nome);
-    	disciplinas.put(String.valueOf(idAtual),disciplina);
+    	Matricula disciplina = new Matricula(idAtual, nome, cpf, cod);
+    	matriculas.put(String.valueOf(idAtual),disciplina);
     	return disciplina;
     }
     
     public void deletar(String id) {
-		disciplinas.remove(id);	
+		matriculas.remove(id);	
 	}   
     
     public List encontraTodos() {
     	ArrayList<String> values = new ArrayList<String>();
     	
-    	if (!disciplinas.isEmpty()) {
+    	if (!matriculas.isEmpty()) {
     		values.add(newHtml.header());
     		values.add(newHtml.bodyTag());
-			for (String chave : disciplinas.keySet()) {
+			for (String chave : matriculas.keySet()) {
 				values.add("<div class=\"container\">\r\n<h4>");
-				values.add(disciplinas.get(chave).getNomeAluno());
+				values.add(matriculas.get(chave).getNomeAluno());
 				values.add("</h4></div>");
 			}
 			values.add(newHtml.bodyEndTag());

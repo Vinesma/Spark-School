@@ -40,8 +40,10 @@ public class Main {
     	
     	post("/matricula/add", (req, res) -> { //adiciona uma matricula 	
             String name = req.queryParams("nome");
+            String cpf = req.queryParams("cpf");
+            String cod = req.queryParams("cod");
     		
-            Matricula matricula = matriculaManager.adicionar(name);
+            Matricula matricula = matriculaManager.adicionar(name, cpf, cod);
             res.status(201); // 201 Created
             return "matricula " + matricula.getNomeAluno() + " adicionada! Id = " + matricula.getId() + newHtml.returnButton();
         });

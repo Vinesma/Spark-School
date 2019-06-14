@@ -8,12 +8,14 @@ public class Matricula {
 	private int id;
 	private String nomeAluno;
 	private String cpfAluno;
-	private String emailAluno;
+	//private String emailAluno;
 	private List<String> disciplinasMatriculadas;
 	
-	public Matricula(int id, String nomeAluno) {
+	public Matricula(int id, String nomeAluno, String cpfAluno, String cod) {
 		this.id = id;
 		this.nomeAluno = nomeAluno;
+		this.cpfAluno = cpfAluno;
+		//this.emailAluno = emailAluno;		
 	}
 	
 	public int getId(){
