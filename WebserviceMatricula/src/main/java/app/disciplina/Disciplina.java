@@ -1,19 +1,28 @@
 package app.disciplina;
-
 public class Disciplina {
-	private int id;
-	private String nome;
-	
-	public Disciplina(int id, String nome) {
-		this.id = id;
-		this.nome = nome;
-	}
-	
-	public int getId(){
-		return this.id;
-	}
-	
-	public String getNome() {
-		return this.nome = nome;
-	}
+
+    private String id;
+    private String nome;
+
+    public Disciplina(String id, String nome) {
+        super();
+        this.id = id;
+        this.nome = nome;
+    }
+
+    public String getId() {
+        return id;
+    }
+
+    public void setId(String id) {
+        this.id = id;
+    }
+
+    public String getNome() {
+        return nome;
+    }
+
+    public void setNome(String nome) {
+        this.nome = nome;
+    }
 }

@@ -1,77 +1,78 @@
 package app;
+import static spark.Spark.delete;
+import static spark.Spark.get;
+import static spark.Spark.options;
+import static spark.Spark.port;
+import static spark.Spark.post;
+import static spark.Spark.put;
+import static spark.Spark.staticFiles;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.gson.Gson;
 
-import static spark.Spark.*;
-
-import java.util.List;
-
+import app.aluno.Aluno;
 import app.manager.*;
-import app.aluno.*;
-import app.paginas.*;
+import app.paginas.Page;
 
 public class Main {
-	
-	private static AlunoManager alunoManager = new AlunoManager();
-	private static ObjectMapper om = new ObjectMapper();
 	private static Page newHtml = new Page();
 	
     public static void main(String[] args) {
-    	
-    	exception(Exception.class, (e, req, res) -> e.printStackTrace());
-    	staticFiles.location("/public");
-    	port(9999);
-    	
-    	get("/", (req, res) -> newHtml.alunoPage(req)); //pagina inicial
-    	
-    	get("/aluno/all", (req, res) -> { //retorna todos os alunos em JSON
-    		res.type("application/json");
-    		return new StandardResponse(StatusResponse.SUCCESS,new Gson().toJsonTree(alunoManager.encontraTodos()));    		
+        final AlunoManager alunoManager = new AlunoManagerImpl();
+        staticFiles.location("/public");
+        port(9999);
+        
+        get("/", (req, res) -> newHtml.alunoPage(req)); //pagina inicial
+
+        post("/aluno/add", (request, response) -> { //add aluno
+        	String nome = request.queryParams("nome");
+            String cpf = request.queryParams("cpf");
+            String email = request.queryParams("email");
+            response.type("application/json");
+
+            Aluno aluno = new Gson().fromJson(request.body(), Aluno.class);
+            alunoManager.addAluno(nome, cpf, email);
+
+            return new Gson().toJson(new StandardResponse(StatusResponse.SUCCESS));
         });
-    	
-    	get("/aluno", (req, res) -> { //retorna todos os alunos em HTML
-            List resultado = alunoManager.encontraTodosHTML();
-            if (resultado.isEmpty()) {
-                return "Nenhum aluno encontrado!" + newHtml.returnButton();
-            } else {
-            	String temp = "";
-            	for (int i = 0; i < resultado.size(); i++) {
-            		temp += resultado.get(i).toString() + "<br>";
-				}
-                return temp + newHtml.returnButton();
-            }            
+
+        get("/aluno", (request, response) -> { //retorna todos os alunos
+            response.type("application/json");
+
+            return new Gson().toJson(new StandardResponse(StatusResponse.SUCCESS, new Gson().toJsonTree(alunoManager.getAlunos())));
         });
-    	
-    	get("/aluno/:id", (req, res) -> { //encontra um aluno por ID
-    		Aluno aluno = alunoManager.encontraId(req.params(":id"));
-            if (aluno != null) {
-                return om.writeValueAsString(aluno);
-            } else {
-                res.status(404);
-                return "Aluno nao encontrado" + newHtml.returnButton();
-            }
-    	});
-    	
-    	post("/aluno/add", (req, res) -> { //adiciona um aluno
-            String name = req.queryParams("nome");
-            String cpf = req.queryParams("cpf");
-            String email = req.queryParams("email");    		
-            Aluno aluno = alunoManager.adicionar(name, cpf, email);
-            res.status(201); // 201 Created
-            return "Aluno " + aluno.getNome() + " adicionado! Id = " + aluno.getId() + newHtml.returnButton();
+
+        get("/aluno/:id", (request, response) -> { //retorna um aluno por id
+            response.type("application/json");
+
+            return new Gson().toJson(new StandardResponse(StatusResponse.SUCCESS, new Gson().toJsonTree(alunoManager.getAluno(request.params(":id")))));
         });
-    	
-    	delete("/aluno/:id", (req, res) -> { //apaga um aluno
-            String id = req.params(":id");
-            Aluno aluno = alunoManager.buscaId(id);
-            if (aluno != null) {
-                alunoManager.deletar(id);
-                return "Aluno com id " + id + " foi deletado!" + newHtml.returnButton();
+
+        put("/aluno/:id", (request, response) -> { //edita um aluno
+            response.type("application/json");
+
+            Aluno toEdit = new Gson().fromJson(request.body(), Aluno.class);
+            Aluno editaAluno = alunoManager.editaAluno(toEdit);
+
+            if (editaAluno != null) {
+                return new Gson().toJson(new StandardResponse(StatusResponse.SUCCESS, new Gson().toJsonTree(editaAluno)));
             } else {
-                res.status(404);
-                return "Aluno nao encontrado!" + newHtml.returnButton();
+                return new Gson().toJson(new StandardResponse(StatusResponse.ERROR, new Gson().toJson("Aluno nao encontrado")));
             }
         });
+
+        delete("/aluno/:id", (request, response) -> { //exclui aluno
+            response.type("application/json");
+
+            alunoManager.deletaAluno(request.params(":id"));
+            return new Gson().toJson(new StandardResponse(StatusResponse.SUCCESS, "Aluno excluido"));
+        });
+
+        options("/aluno/:id", (request, response) -> { //aluno existe?
+            response.type("application/json");
+
+            return new Gson().toJson(new StandardResponse(StatusResponse.SUCCESS, (alunoManager.alunoExiste(request.params(":id"))) ? "Aluno existe" : "Aluno nao existe"));
+        });
+
     }
+
 }

@@ -1,87 +1,97 @@
 package app;
+import static spark.Spark.delete;
+import static spark.Spark.get;
+import static spark.Spark.options;
+import static spark.Spark.port;
+import static spark.Spark.post;
+import static spark.Spark.put;
+import static spark.Spark.staticFiles;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-
-import org.eclipse.jetty.client.api.Response;
-import org.glassfish.jersey.*;
-import app.manager.MatriculaManager;
-import app.matricula.*;
-import app.aluno.*;
-import app.disciplina.*;
-
-import static spark.Spark.*;
-
-import java.util.List;
-
+import com.google.gson.Gson;
 import javax.ws.rs.client.*;
 import javax.ws.rs.core.*;
 
-import app.paginas.*;
+import app.aluno.Aluno;
+import app.disciplina.Disciplina;
+import app.manager.*;
+import app.matricula.Matricula;
+import app.paginas.Page;
 
 public class Main {
-	
-	private static MatriculaManager matriculaManager = new MatriculaManager();
 	private static Page newHtml = new Page();
 	private static final String REST_URI = "http://localhost:9999/aluno/all";
-	private static Client cliente = ClientBuilder.newClient();	
+	private static Client cliente = ClientBuilder.newClient();
 	
     public static void main(String[] args) {
-    	
-    	exception(Exception.class, (e, req, res) -> e.printStackTrace());
-    	staticFiles.location("/public");
-    	port(9996);
-    	
-    	get("/", (req, res) -> newHtml.matriculaPage(req)); //pagina inicial
-    	
-    	get("/matricula", (req, res) -> { //retorna todos as matriculas
-            List resultado = matriculaManager.encontraTodos();
-            if (resultado.isEmpty()) {
-                return "Nenhuma matricula encontrada!" + newHtml.returnButton();
+        final MatriculaManager MatriculaManager = new MatriculaManagerImpl();        
+        staticFiles.location("/public");
+        port(9997);
+        
+        get("/", (req, res) -> newHtml.matriculaPage(req)); //pagina inicial
+
+        post("/matricula/add", (request, response) -> { //add Matricula
+        	String nome = request.queryParams("nome");
+            String cpf = request.queryParams("cpf");
+            String email = request.queryParams("email");
+            response.type("application/json");
+
+            Matricula Matricula = new Gson().fromJson(request.body(), Matricula.class);
+            MatriculaManager.addMatricula(nome, cpf, email);
+
+            return new Gson().toJson(new StandardResponse(StatusResponse.SUCCESS));
+        });
+
+        get("/matricula", (request, response) -> { //retorna todas as Matriculas
+            response.type("application/json");
+
+            return new Gson().toJson(new StandardResponse(StatusResponse.SUCCESS, new Gson().toJsonTree(MatriculaManager.getMatriculas())));
+        });
+
+        get("/matricula/:id", (request, response) -> { //retorna uma Matricula por id
+            response.type("application/json");
+
+            return new Gson().toJson(new StandardResponse(StatusResponse.SUCCESS, new Gson().toJsonTree(MatriculaManager.getMatricula(request.params(":id")))));
+        });
+
+        put("/matricula/:id", (request, response) -> { //edita uma Matricula
+            response.type("application/json");
+
+            Matricula toEdit = new Gson().fromJson(request.body(), Matricula.class);
+            Matricula editaMatricula = MatriculaManager.editaMatricula(toEdit);
+
+            if (editaMatricula != null) {
+                return new Gson().toJson(new StandardResponse(StatusResponse.SUCCESS, new Gson().toJsonTree(editaMatricula)));
             } else {
-            	String temp = "";
-            	for (int i = 0; i < resultado.size(); i++) {
-            		temp += resultado.get(i).toString() + "<br>";
-				}
-                return temp + newHtml.returnButton();
+                return new Gson().toJson(new StandardResponse(StatusResponse.ERROR, new Gson().toJson("Matricula nao encontrada")));
             }
         });
-    	
-    	post("/matricula/add", (req, res) -> { //adiciona uma matricula 	
-            String name = req.queryParams("nome");
-            String cpf = req.queryParams("cpf");
-            String cod = req.queryParams("cod");
-            
-            Aluno aluno = getAlunoNome(name);
-                		
-            if(aluno != null) {
-            	return aluno.getNome();
-            }else{
-            	return "Aluno nao encontrado";
-            }	
-            /*
-            Matricula matricula = matriculaManager.adicionar(name, cpf, cod);
-            res.status(201); // 201 Created
-            return "matricula " + matricula.getNomeAluno() + " adicionada! Id = " + matricula.getId() + newHtml.returnButton();
-            */
+
+        delete("/matricula/:id", (request, response) -> { //exclui Matricula
+            response.type("application/json");
+
+            MatriculaManager.deletaMatricula(request.params(":id"));
+            return new Gson().toJson(new StandardResponse(StatusResponse.SUCCESS, "Matricula excluida"));
         });
-    	
-    	delete("/matricula/:id", (req, res) -> { //apaga uma matricula
-            String id = req.params(":id");
-            Matricula matricula = matriculaManager.buscaId(id);
-            if (matricula != null) {
-                matriculaManager.deletar(id);
-                return "matricula com id " + id + " foi deletada!" + newHtml.returnButton();
-            } else {
-                res.status(404);
-                return "matricula nao encontrada!" + newHtml.returnButton();
-            }
-        });    	
+
+        options("/matricula/:id", (request, response) -> { //Matricula existe?
+            response.type("application/json");
+
+            return new Gson().toJson(new StandardResponse(StatusResponse.SUCCESS, (MatriculaManager.matriculaExiste(request.params(":id"))) ? "Matricula existe" : "Matricula nao existe"));
+        });
+
     }
     
-    public static Aluno getAlunoNome(String nome) {
+    public static Aluno getAlunoId(String id) {
         return cliente.target(REST_URI)
-            	.path(String.valueOf(nome))
+            	.path(String.valueOf(id))
             	.request(MediaType.APPLICATION_JSON)
             	.get(Aluno.class);
+    }
+    
+    public static Disciplina getDisciplinaId(String id) {
+        return cliente.target(REST_URI)
+            	.path(String.valueOf(id))
+            	.request(MediaType.APPLICATION_JSON)
+            	.get(Disciplina.class);
     }
 }
