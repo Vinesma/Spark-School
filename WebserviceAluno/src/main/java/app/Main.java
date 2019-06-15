@@ -44,7 +44,9 @@ public class Main {
         get("/aluno/:id", (request, response) -> { //retorna um aluno por id
             response.type("application/json");
 
-            return new Gson().toJson(new StandardResponse(StatusResponse.SUCCESS, new Gson().toJsonTree(alunoManager.getAluno(request.params(":id")))));
+            StandardResponse out = new StandardResponse(StatusResponse.SUCCESS, new Gson().toJsonTree(alunoManager.getAluno(request.params(":id"))));
+
+            return new Gson().toJson(out.getData());
         });
 
         put("/aluno/:id", (request, response) -> { //edita um aluno
